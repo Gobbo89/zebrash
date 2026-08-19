@@ -1,22 +1,14 @@
 # Zebrash
 
-> ## ⚠️ Warning
-> As I am leaving Ingrid, I am stepping back from being the maintainer of this project.
-> This repository will remain public, but I will no longer be reviewing pull requests,
-> responding to issues, or releasing updates.
-
-> It is possible that this project will get a new maintainer from Ingrid in the future.
-> In the meantime, you are welcome to open PRs or issues, though please note
-> that they are unlikely to be reviewed. You are also free to fork this project, as it is
-> released under the MIT license.
-
-> Sincerely, Fedir Kryvytskyi
+> [!IMPORTANT]
+> [Fedir Kryvytskyi](https://github.com/fkryvyts-ingrid) left [Ingrid](https://github.com/ingridhq), and the [original repo](https://github.com/ingridhq/zebrash) is not actively maintained.  
+> This fork was created to add EAN 8 support.
 
 Library for rendering ZPL (Zebra Programming Language) files as raster images
 
 - Partially based on https://github.com/BinaryKits/BinaryKits.Zpl
 - Uses slightly modified implementations of:
-	- PDF417, Aztec, Code 2 of 5 and EAN13 barcodes from https://github.com/boombuler/barcode/
+	- PDF417, Aztec, Code 2 of 5, EAN13 and EAN8 barcodes from https://github.com/boombuler/barcode/
 	- Code 128, Code 39, QR Code and DataMatrix from https://github.com/makiuchi-d/gozxing
 
 ## Description
