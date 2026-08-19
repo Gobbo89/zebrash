@@ -147,6 +147,14 @@ func (f *RecalledField) Resolve() (any, error) {
 			Position:     field.Position,
 			Data:         text,
 		}, nil
+	case *BarcodeEan8:
+		return &BarcodeEan8WithData{
+			ReversePrint: field.ReversePrint,
+			BarcodeEan8:  *fe,
+			Width:        field.Width,
+			Position:     field.Position,
+			Data:         text,
+		}, nil
 	case *Barcode2of5:
 		return &Barcode2of5WithData{
 			ReversePrint: field.ReversePrint,
