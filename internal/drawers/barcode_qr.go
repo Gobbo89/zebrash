@@ -3,12 +3,12 @@ package drawers
 import (
 	"fmt"
 
+	"github.com/Gobbo89/zebrash/drawers"
+	"github.com/Gobbo89/zebrash/internal/barcodes/qrcode"
+	"github.com/Gobbo89/zebrash/internal/barcodes/qrcode/encoder"
+	"github.com/Gobbo89/zebrash/internal/elements"
+	"github.com/Gobbo89/zebrash/internal/images"
 	"github.com/ingridhq/gg"
-	"github.com/ingridhq/zebrash/drawers"
-	"github.com/ingridhq/zebrash/internal/barcodes/qrcode"
-	"github.com/ingridhq/zebrash/internal/barcodes/qrcode/encoder"
-	"github.com/ingridhq/zebrash/internal/elements"
-	"github.com/ingridhq/zebrash/internal/images"
 )
 
 func NewBarcodeQrDrawer() *ElementDrawer {

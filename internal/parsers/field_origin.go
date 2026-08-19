@@ -1,8 +1,8 @@
 package parsers
 
 import (
-	"github.com/ingridhq/zebrash/internal/elements"
-	"github.com/ingridhq/zebrash/internal/printers"
+	"github.com/Gobbo89/zebrash/internal/elements"
+	"github.com/Gobbo89/zebrash/internal/printers"
 )
 
 func NewFieldOriginParser() *CommandParser {

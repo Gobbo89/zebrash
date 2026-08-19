@@ -5,11 +5,11 @@ import (
 	"io"
 	"math"
 
+	"github.com/Gobbo89/zebrash/drawers"
+	"github.com/Gobbo89/zebrash/elements"
+	drawers_internal "github.com/Gobbo89/zebrash/internal/drawers"
+	"github.com/Gobbo89/zebrash/internal/images"
 	"github.com/ingridhq/gg"
-	"github.com/ingridhq/zebrash/drawers"
-	"github.com/ingridhq/zebrash/elements"
-	drawers_internal "github.com/ingridhq/zebrash/internal/drawers"
-	"github.com/ingridhq/zebrash/internal/images"
 )
 
 type reversePrintable interface {

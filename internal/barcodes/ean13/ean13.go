@@ -4,8 +4,8 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/ingridhq/zebrash/internal/barcodes/utils"
-	"github.com/ingridhq/zebrash/internal/images"
+	"github.com/Gobbo89/zebrash/internal/barcodes/utils"
+	"github.com/Gobbo89/zebrash/internal/images"
 )
 
 type ean13 struct {

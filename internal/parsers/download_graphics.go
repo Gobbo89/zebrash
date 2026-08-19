@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ingridhq/zebrash/internal/elements"
-	"github.com/ingridhq/zebrash/internal/hex"
-	"github.com/ingridhq/zebrash/internal/printers"
+	"github.com/Gobbo89/zebrash/internal/elements"
+	"github.com/Gobbo89/zebrash/internal/hex"
+	"github.com/Gobbo89/zebrash/internal/printers"
 )
 
 func NewDownloadGraphicsParser() *CommandParser {

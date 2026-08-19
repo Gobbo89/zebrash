@@ -5,7 +5,7 @@ import (
 	"image"
 	"strings"
 
-	"github.com/ingridhq/zebrash/internal/barcodes/utils"
+	"github.com/Gobbo89/zebrash/internal/barcodes/utils"
 )
 
 const code39AlphabetString = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%"

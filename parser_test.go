@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ingridhq/zebrash/drawers"
+	"github.com/Gobbo89/zebrash/drawers"
 )
 
 var (

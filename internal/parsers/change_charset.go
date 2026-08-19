@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ingridhq/zebrash/internal/printers"
+	"github.com/Gobbo89/zebrash/internal/printers"
 )
 
 func NewChangeCharsetParser() *CommandParser {

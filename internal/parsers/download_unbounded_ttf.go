@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Gobbo89/zebrash/internal/hex"
+	"github.com/Gobbo89/zebrash/internal/printers"
 	"github.com/golang/freetype/truetype"
-	"github.com/ingridhq/zebrash/internal/hex"
-	"github.com/ingridhq/zebrash/internal/printers"
 )
 
 func NewDownloadUnboundedTtfParser() *CommandParser {

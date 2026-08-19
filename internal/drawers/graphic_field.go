@@ -3,10 +3,10 @@ package drawers
 import (
 	"image"
 
+	"github.com/Gobbo89/zebrash/drawers"
+	"github.com/Gobbo89/zebrash/internal/elements"
+	"github.com/Gobbo89/zebrash/internal/images"
 	"github.com/ingridhq/gg"
-	"github.com/ingridhq/zebrash/drawers"
-	"github.com/ingridhq/zebrash/internal/elements"
-	"github.com/ingridhq/zebrash/internal/images"
 )
 
 func NewGraphicFieldDrawer() *ElementDrawer {

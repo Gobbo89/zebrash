@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/Gobbo89/zebrash/drawers"
+	"github.com/Gobbo89/zebrash/internal/barcodes/twooffive"
+	"github.com/Gobbo89/zebrash/internal/elements"
 	"github.com/ingridhq/gg"
-	"github.com/ingridhq/zebrash/drawers"
-	"github.com/ingridhq/zebrash/internal/barcodes/twooffive"
-	"github.com/ingridhq/zebrash/internal/elements"
 )
 
 var digitsOnly = regexp.MustCompile(`[^0-9]+`)

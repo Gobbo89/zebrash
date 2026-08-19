@@ -4,11 +4,11 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/Gobbo89/zebrash/drawers"
+	"github.com/Gobbo89/zebrash/internal/assets"
+	"github.com/Gobbo89/zebrash/internal/elements"
 	"github.com/golang/freetype/truetype"
 	"github.com/ingridhq/gg"
-	"github.com/ingridhq/zebrash/drawers"
-	"github.com/ingridhq/zebrash/internal/assets"
-	"github.com/ingridhq/zebrash/internal/elements"
 )
 
 var (

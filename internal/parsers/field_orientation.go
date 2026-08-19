@@ -1,7 +1,7 @@
 package parsers
 
 import (
-	"github.com/ingridhq/zebrash/internal/printers"
+	"github.com/Gobbo89/zebrash/internal/printers"
 )
 
 func NewFieldOrientationParser() *CommandParser {
