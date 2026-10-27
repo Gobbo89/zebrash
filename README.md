@@ -21,6 +21,21 @@ Example of the output (more examples can be found inside `testdata` folder):
 ![UPS label](testdata/ups_grayscale.png)
 
 
+## Rendering compatibility
+
+PDF417 (`^B7`) uses the module width supplied by `^BY`. A fresh parser defaults
+to width 2 when `^BY` is omitted. Explicit zero or negative widths use a minimum
+of 1, consistent with the Code 128 and EAN encoders. Positive widths are preserved,
+including values above 10. This deliberately renders a barcode for `^BY0`, unlike
+the tested Zebra ZD230t (firmware V89.21.46Z), which produces no visible barcode;
+Labelary also substitutes width 1 for that input.
+
+Rotated `^FO`/`^FB` text snapshots cover full, underfilled, and single-line blocks
+at line spacings -10, 0, and +6. Their placement was checked against that printer.
+The fixtures use the renderer's fonts, so they do not require pixel-identical
+printer glyphs. The declared maximum line count determines the initial line
+position even when the block contains fewer lines.
+
 ## Usage:
 
 ```go

@@ -234,6 +234,48 @@ func TestDrawLabelAsPng(t *testing.T) {
 			dstPath: "text_fb_fo_i.png",
 		},
 		{
+			name:     "Text Field Block Origin 90 degrees rotation with line spacing",
+			srcPath:  "text_fb_fo_r_spacing.zpl",
+			dstPath:  "text_fb_fo_r_spacing.png",
+			widthMm:  99.875,
+			heightMm: 36,
+		},
+		{
+			name:     "Text Field Block Origin 90 degrees rotation underfilled",
+			srcPath:  "text_fb_fo_r_underfilled.zpl",
+			dstPath:  "text_fb_fo_r_underfilled.png",
+			widthMm:  99.875,
+			heightMm: 36,
+		},
+		{
+			name:     "Text Field Block Origin 90 degrees rotation single line",
+			srcPath:  "text_fb_fo_r_single_line.zpl",
+			dstPath:  "text_fb_fo_r_single_line.png",
+			widthMm:  99.875,
+			heightMm: 36,
+		},
+		{
+			name:     "Text Field Block Origin 180 degrees rotation with line spacing",
+			srcPath:  "text_fb_fo_i_spacing.zpl",
+			dstPath:  "text_fb_fo_i_spacing.png",
+			widthMm:  99.875,
+			heightMm: 36,
+		},
+		{
+			name:     "Text Field Block Origin 180 degrees rotation underfilled",
+			srcPath:  "text_fb_fo_i_underfilled.zpl",
+			dstPath:  "text_fb_fo_i_underfilled.png",
+			widthMm:  99.875,
+			heightMm: 36,
+		},
+		{
+			name:     "Text Field Block Origin 180 degrees rotation single line",
+			srcPath:  "text_fb_fo_i_single_line.zpl",
+			dstPath:  "text_fb_fo_i_single_line.png",
+			widthMm:  99.875,
+			heightMm: 36,
+		},
+		{
 			name:    "Text Field Multi-line",
 			srcPath: "text_multiline.zpl",
 			dstPath: "text_multiline.png",
@@ -407,6 +449,57 @@ func TestDrawLabelAsPng(t *testing.T) {
 			wantImg := mustDecodePng(mustReadFile(fullDstPath, t), t)
 
 			compareImages(gotImg, wantImg, fullDiffPath, t)
+		})
+	}
+}
+
+func TestDrawPdf417ModuleWidth(t *testing.T) {
+	testCases := []struct {
+		name      string
+		command   string
+		wantWidth int
+	}{
+		{name: "omitted BY uses default two", wantWidth: 274},
+		{name: "zero uses minimum one", command: "^BY0", wantWidth: 137},
+		{name: "one dot", command: "^BY1", wantWidth: 137},
+		{name: "two dots", command: "^BY2", wantWidth: 274},
+		{name: "three dots", command: "^BY3", wantWidth: 411},
+		{name: "ten dots", command: "^BY10", wantWidth: 1370},
+		{name: "eleven dots are not clamped", command: "^BY11", wantWidth: 1507},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			zpl := "^XA" + tC.command + "^FO10,10^B7N,8,5,4^FDPDF417 MODULE WIDTH TEST 0001^FS^XZ"
+			labels, err := NewParser().Parse([]byte(zpl))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(labels) != 1 {
+				t.Fatalf("got %d labels, want 1", len(labels))
+			}
+			var buff bytes.Buffer
+			err = NewDrawer().DrawLabelAsPng(labels[0], &buff, drawers.DrawerOptions{
+				LabelWidthMm:  200,
+				LabelHeightMm: 40,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			img := mustDecodePng(buff.Bytes(), t)
+			first, last := -1, -1
+			for x := 0; x < img.Bounds().Dx(); x++ {
+				r, _, _, _ := img.At(x, 10).RGBA()
+				if r < 0x8000 {
+					if first < 0 {
+						first = x
+					}
+					last = x
+				}
+			}
+			if first != 10 || last != 10+tC.wantWidth-1 {
+				t.Fatalf("barcode row spans [%d,%d], want [10,%d]", first, last, 10+tC.wantWidth-1)
+			}
 		})
 	}
 }
