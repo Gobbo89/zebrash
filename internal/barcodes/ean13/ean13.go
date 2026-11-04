@@ -25,7 +25,7 @@ func newEan13(code *utils.BitList, height, barWidth int) *ean13 {
 		width:          code.Len() * barWidth,
 		height:         height,
 		barWidth:       barWidth,
-		guardExtension: CalculateGuardExtension(barWidth),
+		guardExtension: utils.EANGuardExtension,
 	}
 }
 
@@ -81,8 +81,4 @@ func isGuardBar(x int) bool {
 		return true
 	}
 	return false
-}
-
-func CalculateGuardExtension(barWidth int) int {
-	return min(barWidth*5, 20)
 }

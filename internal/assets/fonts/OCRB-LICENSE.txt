@@ -1,0 +1,10 @@
+OCR B Regular (OCRB.ttf) from Matthew Skala's OCR fonts, version 0.3.1:
+https://tsukurimashou.org/ocr.php.en
+https://tsukurimashou.org/files/ocr-0.3.1.zip
+
+The font is distributed here unmodified. Matthew Skala's contributions are
+public domain, as described in the upstream documentation.
+
+The underlying OCR-B sources carry the following notice:
+Copyright 1995, 2010 Norbert Schwarz
+You may freely use, modify and/or distribute this file, without limitation.

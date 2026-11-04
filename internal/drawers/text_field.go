@@ -1,7 +1,6 @@
 package drawers
 
 import (
-	"slices"
 	"strings"
 
 	"github.com/Gobbo89/zebrash/drawers"
@@ -30,7 +29,12 @@ func NewTextFieldDrawer() *ElementDrawer {
 
 			fontSize := text.Font.GetSize()
 			scaleX := text.Font.GetScaleX()
-			face := truetype.NewFace(getTffFont(text.Font), &truetype.Options{Size: fontSize})
+			ttf := getTffFont(text.Font)
+			face := truetype.NewFace(ttf, &truetype.Options{Size: fontSize})
+			defer face.Close()
+			if ttf == font0 {
+				face = nbspFace{face}
+			}
 			gCtx.SetFontFace(face)
 
 			setLineColor(gCtx, elements.LineColorBlack)
@@ -159,7 +163,7 @@ func mustLoadFont(fontData []byte) *truetype.Font {
 // Similar to gCtx.DrawStringWrapped but supports justified alignment
 func drawStringWrapped(gCtx *gg.Context, s string, x, y, ax, ay, width, lineSpacing float64, align elements.TextAlignment) {
 	fontHeight := gCtx.FontHeight()
-	lines := gCtx.WordWrap(s, width)
+	lines := wrapFieldText(gCtx, s, width)
 
 	h := float64(len(lines)) * fontHeight * lineSpacing
 	h -= (lineSpacing - 1) * fontHeight
@@ -183,7 +187,7 @@ func drawStringWrapped(gCtx *gg.Context, s string, x, y, ax, ay, width, lineSpac
 	for i, line := range lines {
 		switch {
 		case align == elements.TextAlignmentJustified && i < lastLine:
-			drawStringJustified(gCtx, line, x, y, ax, ay, width, nil)
+			drawStringJustified(gCtx, line, x, y, ax, ay, width)
 		default:
 			gCtx.DrawStringAnchored(line, x, y, ax, ay)
 		}
@@ -192,8 +196,8 @@ func drawStringWrapped(gCtx *gg.Context, s string, x, y, ax, ay, width, lineSpac
 	}
 }
 
-func drawStringJustified(gCtx *gg.Context, line string, x, y, ax, ay, maxWidth float64, hiddenWords []string) {
-	words := strings.Fields(line)
+func drawStringJustified(gCtx *gg.Context, line string, x, y, ax, ay, maxWidth float64) {
+	words := strings.FieldsFunc(line, isBreakableSpace)
 	fontHeight := gCtx.FontHeight()
 
 	totalWordWidth := 0.0
@@ -215,9 +219,7 @@ func drawStringJustified(gCtx *gg.Context, line string, x, y, ax, ay, maxWidth f
 
 	cx := x
 	for i, word := range words {
-		if !slices.Contains(hiddenWords, word) {
-			gCtx.DrawStringAnchored(word, cx, y, ax, ay)
-		}
+		gCtx.DrawStringAnchored(word, cx, y, ax, ay)
 
 		cx += wordsWidth[i] + spaceWidth
 	}

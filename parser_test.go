@@ -383,9 +383,28 @@ func TestDrawLabelAsPng(t *testing.T) {
 			dstPath: "qr_code_ft_manual.png",
 		},
 		{
+			name:    "EAN-8 barcode test",
+			srcPath: "ean8.zpl",
+			dstPath: "ean8.png",
+		},
+		{
 			name:    "EAN-13 barcode test",
 			srcPath: "ean13.zpl",
 			dstPath: "ean13.png",
+		},
+		{
+			name:     "EAN-8 price label with nonbreaking space",
+			srcPath:  "ean8_price_label.zpl",
+			dstPath:  "ean8_price_label.png",
+			widthMm:  60,
+			heightMm: 30,
+		},
+		{
+			name:     "EAN-13 price label with nonbreaking space",
+			srcPath:  "ean13_price_label.zpl",
+			dstPath:  "ean13_price_label.png",
+			widthMm:  100,
+			heightMm: 38,
 		},
 		{
 			name:    "Templating",
@@ -451,6 +470,34 @@ func TestDrawLabelAsPng(t *testing.T) {
 			compareImages(gotImg, wantImg, fullDiffPath, t)
 		})
 	}
+}
+
+func TestDrawEAN8InterpretationReachesPriceLabelFrame(t *testing.T) {
+	zpl := string(mustReadFile("testdata/ean8_price_label.zpl", t))
+	// Draw without the frame so only the interpretation line can contribute
+	// ink at its lower edge, one dot above the original frame.
+	zpl = strings.Replace(zpl, "^FO10,12^GB461,211,2^FS", "", 1)
+	labels, err := NewParser().Parse([]byte(zpl))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var buff bytes.Buffer
+	err = NewDrawer().DrawLabelAsPng(labels[0], &buff, drawers.DrawerOptions{
+		LabelWidthMm: 60, LabelHeightMm: 30,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	img := mustDecodePng(buff.Bytes(), t)
+	// The lower border starts at y=221. A dark pixel at y=220 means there
+	// is no white row between the digits and that border.
+	for x := 140; x < 341; x++ {
+		gray, _, _, _ := img.At(x, 220).RGBA()
+		if gray < 0x8000 {
+			return
+		}
+	}
+	t.Fatal("EAN-8 digits leave an unexpected gap above the original frame")
 }
 
 func TestDrawPdf417ModuleWidth(t *testing.T) {

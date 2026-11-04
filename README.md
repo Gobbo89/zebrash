@@ -23,6 +23,12 @@ Example of the output (more examples can be found inside `testdata` folder):
 
 ## Rendering compatibility
 
+EAN-8 (`^B8`) and EAN-13 (`^BE`) use OCR-B for the digits below the bars.
+The interpretation line and guard extensions follow measurements from Zebra
+and Labelary renders at 8 dots/mm; font rasterization can still differ.
+An NBSP (U+00A0) in the bundled font 0 has the width of a regular space
+and stays nonbreaking in a field block.
+
 PDF417 (`^B7`) uses the module width supplied by `^BY`. A fresh parser defaults
 to width 2 when `^BY` is omitted. Explicit zero or negative widths use a minimum
 of 1, consistent with the Code 128 and EAN encoders. Positive widths are preserved,
