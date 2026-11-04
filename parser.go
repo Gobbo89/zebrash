@@ -120,7 +120,7 @@ func (p *Parser) Parse(zplData []byte) ([]elements.LabelInfo, error) {
 
 			el, err := cp.Parse(command, p.printer)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse zpl command %v: %w", command, err)
+				return nil, fmt.Errorf("failed to parse zpl command %s: %w", cp.CommandCode, err)
 			}
 
 			if el == nil {

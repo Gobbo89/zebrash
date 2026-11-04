@@ -53,12 +53,18 @@ func NewGraphicFieldParser() *CommandParser {
 				}
 			}
 
+			// A graphic without a usable row width cannot be drawn. Do not
+			// decode its payload just to skip it in the drawer.
+			if result.RowBytes <= 0 {
+				return result, nil
+			}
+
 			if len(parts) > 4 {
 				data := strings.Trim(strings.Join(parts[4:], ","), " ")
 
 				switch result.Format {
 				case elements.GraphicFieldFormatHex:
-					v, err := hex.DecodeGraphicFieldData(data, result.RowBytes)
+					v, err := hex.DecodeGraphicFieldData(data, result.RowBytes, result.TotalBytes)
 					if err != nil {
 						return nil, fmt.Errorf("failed to decode hex string: %w", err)
 					}

@@ -157,6 +157,14 @@ const (
 )
 
 func EncodeNoMode(content string, height, barWidth int) (image.Image, string, error) {
+	// Subset B accepts printable ASCII and DEL. Subsets A and C use
+	// ASCII digit pairs, and ZPL invocation codes are also ASCII.
+	for _, c := range content {
+		if c < ' ' || c > 127 {
+			return nil, "", fmt.Errorf("Code 128 cannot encode character %U in manual mode", c)
+		}
+	}
+
 	var humanReadable strings.Builder
 
 	var patternsIdx []byte
@@ -438,12 +446,14 @@ func encode(patternsIdx []byte, height, barWidth int) (image.Image, error) {
 	checkSum := int(patternsIdx[0])
 
 	for i, patternIdx := range patternsIdx {
+		if int(patternIdx) >= len(CODE_PATTERNS) {
+			return nil, fmt.Errorf("invalid Code 128 pattern index %d", patternIdx)
+		}
 		result = appendPattern(result, CODE_PATTERNS[patternIdx])
-		checkSum += int(patternIdx) * i
+		checkSum = (checkSum + int(patternIdx)*(i%103)) % 103
 	}
 
 	// Compute and append checksum
-	checkSum = checkSum % 103
 	result = appendPattern(result, CODE_PATTERNS[checkSum])
 
 	// Append stop code

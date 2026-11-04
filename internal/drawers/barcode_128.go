@@ -11,7 +11,6 @@ import (
 	"github.com/Gobbo89/zebrash/drawers"
 	"github.com/Gobbo89/zebrash/internal/barcodes/code128"
 	"github.com/Gobbo89/zebrash/internal/elements"
-	"github.com/golang/freetype/truetype"
 	"github.com/ingridhq/gg"
 )
 
@@ -70,7 +69,7 @@ func NewBarcode128Drawer() *ElementDrawer {
 
 			gCtx.DrawImage(img, pos.X, pos.Y)
 			if barcode.Line {
-				applyLineTextToCtx(gCtx, text, pos, barcode.LineAbove, float64(barcode.Width), width, height)
+				return applyLineTextToCtx(gCtx, text, pos, barcode.LineAbove, float64(barcode.Width), width, height)
 			}
 
 			return nil
@@ -78,11 +77,15 @@ func NewBarcode128Drawer() *ElementDrawer {
 	}
 }
 
-func applyLineTextToCtx(gCtx *gg.Context, content string, pos elements.LabelPosition, lineAbove bool, barWidth, width, height float64) {
+func applyLineTextToCtx(gCtx *gg.Context, content string, pos elements.LabelPosition, lineAbove bool, barWidth, width, height float64) error {
 	gCtx.SetColor(color.Black)
 	fontSize := max(barWidth, 1) * 10
 
-	face := truetype.NewFace(font1, &truetype.Options{Size: fontSize})
+	face, err := newRasterFontFace(font1, fontSize)
+	if err != nil {
+		return err
+	}
+	defer face.Close()
 	gCtx.SetFontFace(face)
 
 	x := float64(pos.X) + float64(width)/2
@@ -92,6 +95,7 @@ func applyLineTextToCtx(gCtx *gg.Context, content string, pos elements.LabelPosi
 	}
 
 	gCtx.DrawStringAnchored(content, x, y, 0.5, 0)
+	return nil
 }
 
 // Allows dealing with UCC/EAN with and without chained application identifiers.

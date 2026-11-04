@@ -34,7 +34,7 @@ func NewBarcodeEan8Drawer() *ElementDrawer {
 
 			gCtx.DrawImage(img, pos.X, pos.Y)
 			if barcode.Line {
-				drawEANText(gCtx, text, pos, barcode.LineAbove, img.Bounds().Dy()-guardExtension, max(1, barcode.Width))
+				return drawEANText(gCtx, text, pos, barcode.LineAbove, img.Bounds().Dy()-guardExtension, max(1, barcode.Width))
 			}
 
 			return nil

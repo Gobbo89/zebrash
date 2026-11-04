@@ -30,7 +30,10 @@ func NewTextFieldDrawer() *ElementDrawer {
 			fontSize := text.Font.GetSize()
 			scaleX := text.Font.GetScaleX()
 			ttf := getTffFont(text.Font)
-			face := truetype.NewFace(ttf, &truetype.Options{Size: fontSize})
+			face, err := newRasterFontFace(ttf, fontSize)
+			if err != nil {
+				return err
+			}
 			defer face.Close()
 			if ttf == font0 {
 				face = nbspFace{face}

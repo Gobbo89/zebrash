@@ -1,7 +1,7 @@
 package hex
 
 import (
-	"bytes"
+	"bufio"
 	"compress/zlib"
 	"encoding/base64"
 	hx "encoding/hex"
@@ -12,9 +12,8 @@ import (
 )
 
 const (
-	bInMb                  = 1024 * 1024
-	maxEmbeddedImageSizeMb = 3 * bInMb
-	maxEmbeddedFontSizeMb  = 3 * bInMb
+	maxEmbeddedImageBytes = 3 * 1024 * 1024
+	maxEmbeddedFontBytes  = 3 * 1024 * 1024
 )
 
 func DecodeEscapedString(value string, escapeChar byte) (string, error) {
@@ -38,11 +37,14 @@ func DecodeEscapedString(value string, escapeChar byte) (string, error) {
 }
 
 func DecodeFontData(data string, totalBytes int) ([]byte, error) {
-	return decodeFileData(data, totalBytes, maxEmbeddedFontSizeMb)
+	return decodeFileData(data, totalBytes, totalBytes, maxEmbeddedFontBytes)
 }
 
-func DecodeGraphicFieldData(data string, rowBytes int) ([]byte, error) {
-	return decodeFileData(data, rowBytes, maxEmbeddedImageSizeMb)
+func DecodeGraphicFieldData(data string, rowBytes, totalBytes int) ([]byte, error) {
+	if rowBytes <= 0 {
+		return nil, fmt.Errorf("embedded graphic row width must be positive")
+	}
+	return decodeFileData(data, rowBytes, totalBytes, maxEmbeddedImageBytes)
 }
 
 var compressCounts = map[byte]int{
@@ -87,9 +89,16 @@ var compressCounts = map[byte]int{
 	'z': 400,
 }
 
-func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
+func decodeFileData(data string, rowBytes, totalBytes, maxBytes int) ([]byte, error) {
+	if rowBytes < 0 || rowBytes > maxBytes {
+		return nil, fmt.Errorf("invalid embedded file row size %d", rowBytes)
+	}
 	if z64Encoded(data) {
-		return decodeZ64(data)
+		limit := maxBytes
+		if totalBytes > 0 {
+			limit = min(totalBytes, limit)
+		}
+		return decodeZ64(data, limit)
 	}
 
 	var (
@@ -105,7 +114,7 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 		char := data[i]
 
 		if line.Len() >= rowHex {
-			if err := validateEmbeddedFileSize(&result, &line, 0, maxFileSizeMb); err != nil {
+			if err := validateEmbeddedFileSize(&result, &line, 0, maxBytes); err != nil {
 				return nil, err
 			}
 
@@ -115,6 +124,9 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 		}
 
 		if c, ok := compressCounts[char]; ok {
+			if c > 2*maxBytes-compressCount {
+				return nil, embeddedSizeError(maxBytes)
+			}
 			compressCount += c
 			continue
 		}
@@ -124,7 +136,7 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 			continue
 		case ',':
 			l := rowHex - line.Len()
-			if err := validateEmbeddedFileSize(&result, &line, l, maxFileSizeMb); err != nil {
+			if err := validateEmbeddedFileSize(&result, &line, l, maxBytes); err != nil {
 				return nil, err
 			}
 
@@ -135,7 +147,7 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 			continue
 		case '!':
 			l := rowHex - line.Len()
-			if err := validateEmbeddedFileSize(&result, &line, l, maxFileSizeMb); err != nil {
+			if err := validateEmbeddedFileSize(&result, &line, l, maxBytes); err != nil {
 				return nil, err
 			}
 
@@ -145,7 +157,7 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 
 			continue
 		case ':':
-			if err := validateEmbeddedFileSize(&result, &line, len(prevLine), maxFileSizeMb); err != nil {
+			if err := validateEmbeddedFileSize(&result, &line, len(prevLine), maxBytes); err != nil {
 				return nil, err
 			}
 
@@ -154,7 +166,7 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 		}
 
 		l := max(compressCount, 1)
-		if err := validateEmbeddedFileSize(&result, &line, l, maxFileSizeMb); err != nil {
+		if err := validateEmbeddedFileSize(&result, &line, l, maxBytes); err != nil {
 			return nil, err
 		}
 
@@ -163,7 +175,7 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 	}
 
 	if line.Len() > 0 {
-		if err := validateEmbeddedFileSize(&result, &line, 0, maxFileSizeMb); err != nil {
+		if err := validateEmbeddedFileSize(&result, &line, 0, maxBytes); err != nil {
 			return nil, err
 		}
 
@@ -173,13 +185,17 @@ func decodeFileData(data string, rowBytes, maxFileSizeMb int) ([]byte, error) {
 	return hx.DecodeString(result.String())
 }
 
-func validateEmbeddedFileSize(result, line *strings.Builder, l, maxFileSizeMb int) error {
+func validateEmbeddedFileSize(result, line *strings.Builder, l, maxBytes int) error {
 	totalHexL := result.Len() + line.Len() + l
-	if totalHexL > (2 * maxFileSizeMb) {
-		return fmt.Errorf("embedded file size cannot be greater than %d MB", maxFileSizeMb/bInMb)
+	if totalHexL > 2*maxBytes {
+		return embeddedSizeError(maxBytes)
 	}
 
 	return nil
+}
+
+func embeddedSizeError(maxBytes int) error {
+	return fmt.Errorf("embedded file exceeds %d-byte limit", maxBytes)
 }
 
 const z64Prefix = ":Z64:"
@@ -188,7 +204,7 @@ func z64Encoded(value string) bool {
 	return strings.HasPrefix(value, z64Prefix)
 }
 
-func decodeZ64(value string) ([]byte, error) {
+func decodeZ64(value string, maxBytes int) ([]byte, error) {
 	value = strings.TrimPrefix(value, z64Prefix)
 
 	idx := strings.LastIndex(value, ":")
@@ -196,12 +212,7 @@ func decodeZ64(value string) ([]byte, error) {
 		value = value[:idx]
 	}
 
-	dec, err := base64.StdEncoding.DecodeString(value)
-	if err != nil {
-		return nil, err
-	}
-
-	b := bytes.NewReader(dec)
+	b := bufio.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(value)))
 	z, err := zlib.NewReader(b)
 	if err != nil {
 		return nil, err
@@ -209,5 +220,17 @@ func decodeZ64(value string) ([]byte, error) {
 
 	defer z.Close()
 
-	return io.ReadAll(z)
+	data, err := io.ReadAll(io.LimitReader(z, int64(maxBytes)+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > maxBytes {
+		return nil, embeddedSizeError(maxBytes)
+	}
+	// zlib may finish before the encoded input. Validate any remaining
+	// base64 without allocating a buffer for the entire compressed stream.
+	if _, err := io.Copy(io.Discard, b); err != nil {
+		return nil, err
+	}
+	return data, nil
 }

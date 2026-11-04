@@ -42,6 +42,19 @@ The fixtures use the renderer's fonts, so they do not require pixel-identical
 printer glyphs. The declared maximum line count determines the initial line
 position even when the block contains fewer lines.
 
+## Malformed input limits
+
+Manual Code 128 fields return an error for characters outside the supported
+character set. Inline graphics without a positive row width are skipped.
+Z64 graphics and fonts are limited to 3 MiB of decompressed data per asset;
+a smaller positive declared size also limits decompression. Exceeding a limit
+returns an error instead of rendering partial data.
+
+Font rasterization supports sizes up to 4096 dots, subject to a 16 MiB glyph
+mask cache budget per face. The cache is reduced for larger glyphs, and
+requests that cannot fit return an error. Text is still allowed to extend
+beyond the label and be clipped normally.
+
 ## Usage:
 
 ```go

@@ -8,13 +8,12 @@ import (
 	"github.com/Gobbo89/zebrash/internal/assets"
 	"github.com/Gobbo89/zebrash/internal/barcodes/utils"
 	"github.com/Gobbo89/zebrash/internal/elements"
-	"github.com/golang/freetype/truetype"
 	"github.com/ingridhq/gg"
 )
 
 var fontEANDigits = mustLoadFont(assets.FontOCRB)
 
-func drawEANText(ctx *gg.Context, text string, pos elements.LabelPosition, above bool, barHeight, moduleWidth int) {
+func drawEANText(ctx *gg.Context, text string, pos elements.LabelPosition, above bool, barHeight, moduleWidth int) error {
 	ctx.SetColor(color.Black)
 	w := float64(moduleWidth)
 	x, y := float64(pos.X), float64(pos.Y)
@@ -24,7 +23,10 @@ func drawEANText(ctx *gg.Context, text string, pos elements.LabelPosition, above
 		if len(text) == 13 {
 			divisor, modules = 13, 95
 		}
-		face := truetype.NewFace(font0, &truetype.Options{Size: math.Round(modules * w / divisor)})
+		face, err := newRasterFontFace(font0, math.Round(modules*w/divisor))
+		if err != nil {
+			return err
+		}
 		defer face.Close()
 		ctx.SetFontFace(face)
 		var spaced strings.Builder
@@ -33,12 +35,15 @@ func drawEANText(ctx *gg.Context, text string, pos elements.LabelPosition, above
 			spaced.WriteByte(' ')
 		}
 		drawStringJustified(ctx, spaced.String(), x+8*w, y-float64(utils.EANGuardExtension)/2, 0, 0, (modules-16)*w)
-		return
+		return nil
 	}
 
 	// The interpretation digits scale through three-dot modules and then
 	// retain their height as the bars grow wider.
-	face := truetype.NewFace(fontEANDigits, &truetype.Options{Size: float64(10 * min(moduleWidth, 3))})
+	face, err := newRasterFontFace(fontEANDigits, float64(10*min(moduleWidth, 3)))
+	if err != nil {
+		return err
+	}
 	defer face.Close()
 	ctx.SetFontFace(face)
 	// Place the bottom of the digit ink independently of the guard bars.
@@ -71,4 +76,5 @@ func drawEANText(ctx *gg.Context, text string, pos elements.LabelPosition, above
 		drawDigit(text[i], leftEdge-(float64(half-i)-0.5)*pitch)
 		drawDigit(text[half+i], rightEdge+(float64(i)+0.5)*pitch)
 	}
+	return nil
 }

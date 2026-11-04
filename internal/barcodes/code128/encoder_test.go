@@ -2,6 +2,17 @@ package code128
 
 import "testing"
 
+func TestEncodeNoModeRejectsInvalidCharacters(t *testing.T) {
+	for _, content := range []string{"JOÃO", "\x1f", ">;12é"} {
+		if _, _, err := EncodeNoMode(content, 100, 2); err == nil {
+			t.Errorf("EncodeNoMode(%q) accepted invalid data", content)
+		}
+	}
+	if _, err := encode([]byte{START_B, 255}, 100, 2); err == nil {
+		t.Error("encode accepted an out-of-range pattern index")
+	}
+}
+
 func TestSubsetCSwitch(t *testing.T) {
 	cases := []struct {
 		input, text string

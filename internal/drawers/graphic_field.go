@@ -1,7 +1,10 @@
 package drawers
 
 import (
+	"fmt"
 	"image"
+	"image/color"
+	"math"
 
 	"github.com/Gobbo89/zebrash/drawers"
 	"github.com/Gobbo89/zebrash/internal/elements"
@@ -13,7 +16,7 @@ func NewGraphicFieldDrawer() *ElementDrawer {
 	return &ElementDrawer{
 		Draw: func(gCtx *gg.Context, element any, _ drawers.DrawerOptions, _ *DrawerState) error {
 			field, ok := element.(*elements.GraphicField)
-			if !ok {
+			if !ok || field.RowBytes <= 0 {
 				return nil
 			}
 
@@ -22,32 +25,47 @@ func NewGraphicFieldDrawer() *ElementDrawer {
 				dataLen = min(field.TotalBytes, dataLen)
 			}
 
-			width := field.RowBytes * 8
 			height := dataLen / field.RowBytes
-
-			img := image.NewRGBA(image.Rect(0, 0, width, height))
-
-			for y := 0; y < height; y++ {
-				for x := 0; x < width; x++ {
-					idx := y*(width/8) + x/8
-					if idx >= len(field.Data) {
-						continue
-					}
-
-					// Width for our bitmap data is in bits because each pixel is represented by one bit
-					// but the actual data we have is in bytes
-					// Here we access the value of each bit and check if it is 1 or 0
-					val := ((field.Data[idx]) >> (7 - x%8)) & 1
-					if val != 0 {
-						img.SetRGBA(x, y, images.ColorBlack)
-					}
-				}
+			sx, sy := field.MagnificationX, field.MagnificationY
+			if height == 0 || sx <= 0 || sy <= 0 {
+				return nil
+			}
+			if field.RowBytes > math.MaxInt/8/sx || height > math.MaxInt/sy {
+				return fmt.Errorf("embedded graphic dimensions overflow")
 			}
 
-			imgScaled := images.NewScaled(img, field.MagnificationX, field.MagnificationY)
-			gCtx.DrawImage(imgScaled, field.Position.X, field.Position.Y)
+			// Keep the graphic packed and scale it on demand. Drawing a
+			// magnified field should not allocate an intermediate bitmap.
+			img := packedGraphic{
+				data:     field.Data,
+				rowBytes: field.RowBytes,
+				bounds:   image.Rect(0, 0, field.RowBytes*8*sx, height*sy),
+				sx:       sx,
+				sy:       sy,
+			}
+			gCtx.DrawImage(img, field.Position.X, field.Position.Y)
 
 			return nil
 		},
 	}
+}
+
+type packedGraphic struct {
+	data     []byte
+	rowBytes int
+	bounds   image.Rectangle
+	sx, sy   int
+}
+
+func (g packedGraphic) ColorModel() color.Model { return color.RGBAModel }
+func (g packedGraphic) Bounds() image.Rectangle { return g.bounds }
+func (g packedGraphic) At(x, y int) color.Color {
+	if image.Pt(x, y).In(g.bounds) {
+		x /= g.sx
+		y /= g.sy
+		if g.data[y*g.rowBytes+x/8]&(0x80>>uint(x%8)) != 0 {
+			return images.ColorBlack
+		}
+	}
+	return color.Transparent
 }

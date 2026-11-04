@@ -42,7 +42,7 @@ func NewDownloadGraphicsParser() *CommandParser {
 			}
 
 			if len(parts) > 3 {
-				data, err := hex.DecodeGraphicFieldData(parts[3], graphics.RowBytes)
+				data, err := hex.DecodeGraphicFieldData(parts[3], graphics.RowBytes, graphics.TotalBytes)
 				if err != nil {
 					return nil, fmt.Errorf("failed to decode embedded graphics: %w", err)
 				}
