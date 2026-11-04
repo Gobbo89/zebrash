@@ -41,6 +41,8 @@ at line spacings -10, 0, and +6. Their placement was checked against that printe
 The fixtures use the renderer's fonts, so they do not require pixel-identical
 printer glyphs. The declared maximum line count determines the initial line
 position even when the block contains fewer lines.
+Text beyond the maximum line count is overprinted on the last permitted line,
+matching the tested Zebra and Labelary behavior.
 
 ## Malformed input limits
 
